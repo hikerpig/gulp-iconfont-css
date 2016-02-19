@@ -4,6 +4,7 @@ var path = require('path'),
     gutil = require('gulp-util'),
     consolidate = require('consolidate'),
     _ = require('lodash'),
+    crypto = require('crypto'),
     Stream = require('stream');
 
 var PLUGIN_NAME  = 'gulp-iconfont-css';
@@ -94,13 +95,20 @@ function iconfontCSS(config) {
   };
 
   stream._flush = function(cb) {
-    var content;
+    var content,
+        hash;
+    if (outputFile.isBuffer()) {
+      console.log('isBuffer');
+      hash = crypto.createHash('md5').update(outputFile.contents).digest('hex').slice(0, 6);
+      console.log('hash is', hash);
+    }
     if (glyphMap.length) {
       consolidate[config.engine](config.path, {
           glyphs: glyphMap,
           fontName: config.fontName,
           fontPath: config.fontPath,
-          cssClass: config.cssClass
+          cssClass: config.cssClass,
+          fileHash: hash
         }, function(err, html) {
           if (err) {
             throw new gutil.PluginError(PLUGIN_NAME, 'Error in template: ' + err.message);
