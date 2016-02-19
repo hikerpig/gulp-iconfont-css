@@ -26,7 +26,9 @@ function iconfontCSS(config) {
     fontPath: './',
     engine: 'lodash',
     firstGlyph: 0xE001,
-    cssClass: 'icon'
+    hashLength: 6,
+    cssClass: 'icon',
+    updateFontName: function() {}
   }, config);
 
   // Enable default stylesheet generators
@@ -96,11 +98,15 @@ function iconfontCSS(config) {
 
   stream._flush = function(cb) {
     var content,
-        hash;
+        hash,
+        fontFullname = config.fontName;
     if (outputFile.isBuffer()) {
-      console.log('isBuffer');
-      hash = crypto.createHash('md5').update(outputFile.contents).digest('hex').slice(0, 6);
+      hash = crypto.createHash('md5').update(outputFile.contents).digest('hex').slice(0, config.hashLength);
       console.log('hash is', hash);
+      fontFullname += '-' + hash;
+    }
+    if (config.updateFontName) {
+      config.updateFontName(fontFullname);
     }
     if (glyphMap.length) {
       consolidate[config.engine](config.path, {
@@ -108,7 +114,8 @@ function iconfontCSS(config) {
           fontName: config.fontName,
           fontPath: config.fontPath,
           cssClass: config.cssClass,
-          fileHash: hash
+          fileHash: hash,
+          fontFullname: fontFullname
         }, function(err, html) {
           if (err) {
             throw new gutil.PluginError(PLUGIN_NAME, 'Error in template: ' + err.message);
