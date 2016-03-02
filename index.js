@@ -100,11 +100,17 @@ function iconfontCSS(config) {
     var content,
         hash,
         fontFullname = config.fontName;
-    if (outputFile.isBuffer()) {
-      hash = crypto.createHash('md5').update(outputFile.contents).digest('hex').slice(0, config.hashLength);
+    if (glyphMap) {
+      var glyphMapContent = _.reduce(glyphMap, function (str, obj) {
+        str += obj.fileName + '-' + obj.codePoint;
+        return str;
+      }, '');
+      //console.log('glyphMapContent', glyphMapContent);
+      hash = crypto.createHash('md5').update(glyphMapContent).digest('hex').slice(0, config.hashLength);
       console.log('hash is', hash);
       fontFullname += '-' + hash;
     }
+
     if (config.updateFontName) {
       config.updateFontName(fontFullname);
     }
